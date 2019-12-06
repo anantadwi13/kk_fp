@@ -3,7 +3,6 @@ from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.datasets import load_iris
 
 if __name__ == '__main__':
     headers = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety', 'class']
