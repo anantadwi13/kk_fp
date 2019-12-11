@@ -13,17 +13,28 @@ class Individual(object):
 
     @staticmethod
     def rand_choice_gene(**kwargs):
+        """
+        Args:
+            gene_type: ['digit', 'array_range_float', 'range_int', 'range_float']
+        Returns:
+            list
+        """
         try:
             if kwargs['gene_type'] == 'digit':
                 return random.choice(Individual.GENES)
+            elif kwargs['gene_type'] == 'array_range_float':
+                gene = []
+                for i in range(kwargs['num_features']):
+                    gene.append(random.random() * (kwargs['range_end'] - kwargs['range_start']) + kwargs['range_start'])
+                return gene
             elif kwargs['gene_type'] == 'range_int':
                 return random.randrange(kwargs['range_start'], kwargs['range_end'])
             elif kwargs['gene_type'] == 'range_float':
-                return random.random()*(kwargs['range_end'] - kwargs['range_start']) + kwargs['range_start']
+                return random.random() * (kwargs['range_end'] - kwargs['range_start']) + kwargs['range_start']
             else:
                 exit('Gene type unknown!')
         except Exception as e:
-            exit("Param gene_type undeclared!")
+            exit("Param{} undeclared!".format(''.join([' '+i for i in e.args])))
 
     @staticmethod
     def create_random(genes_size, fitness_func=None, **kwargs) -> 'Individual':
@@ -31,7 +42,7 @@ class Individual(object):
         return Individual(genes, fitness_func, **kwargs)
 
     def print(self):
-        print(self.chromosome, self.fitness)
+        print(self.chromosome, self.fitness, sep='\n')
 
     def cal_fitness(self):
         fitness = 0
@@ -47,13 +58,14 @@ class Individual(object):
 
 class GeneticAlgorithm:
     def __init__(self, population_size, max_generation=1000, genes_size=10, mutation_factor=0.2, rand_factor=0.3,
-                 fitness_func=None, **kwargs):
+                 fitness_func=None, fitness_sort='desc', **kwargs):
         self.POPULATION_SIZE = population_size
         self.MAX_GENERATION = max_generation
         self.GENES_SIZE = genes_size
         self.MUTATION_FACTOR = mutation_factor
         self.RANDOM_FACTOR = rand_factor
         self.fitness_func = fitness_func
+        self.fitness_sort = True if fitness_sort == 'desc' else False  # True => high to low
         self.kwargs = kwargs
         self.__reset()
         pass
@@ -112,9 +124,10 @@ class GeneticAlgorithm:
         self.print_population()
 
         for id_generation in range(1, self.MAX_GENERATION + 1):
-            self.population = sorted(self.population, key=lambda x: x.fitness, reverse=True)
+            self.population = sorted(self.population, key=lambda x: x.fitness, reverse=self.fitness_sort)
 
-            if self.best_individual is None or self.best_individual.fitness < self.population[0].fitness:
+            if self.best_individual is None or (self.fitness_sort and self.best_individual.fitness < self.population[0].fitness)\
+                    or (not self.fitness_sort and self.best_individual.fitness > self.population[0].fitness):
                 self.best_individual = self.population[0]
 
             if self.__check_population_is_same():
