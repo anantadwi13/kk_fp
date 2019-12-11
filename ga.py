@@ -1,10 +1,5 @@
 from typing import List
 import random
-import pandas as pd
-from sklearn.metrics import classification_report, precision_score
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 
 class Individual(object):
@@ -17,13 +12,26 @@ class Individual(object):
         self.fitness = self.cal_fitness()
 
     @staticmethod
-    def rand_choice_gene():
-        return random.choice(Individual.GENES)
+    def rand_choice_gene(**kwargs):
+        try:
+            if kwargs['gene_type'] == 'digit':
+                return random.choice(Individual.GENES)
+            elif kwargs['gene_type'] == 'range_int':
+                return random.randrange(kwargs['range_start'], kwargs['range_end'])
+            elif kwargs['gene_type'] == 'range_float':
+                return random.random()*(kwargs['range_end'] - kwargs['range_start']) + kwargs['range_start']
+            else:
+                exit('Gene type unknown!')
+        except Exception as e:
+            exit("Param gene_type undeclared!")
 
     @staticmethod
     def create_random(genes_size, fitness_func=None, **kwargs) -> 'Individual':
-        genes = [Individual.rand_choice_gene() for i in range(genes_size)]
+        genes = [Individual.rand_choice_gene(**kwargs) for i in range(genes_size)]
         return Individual(genes, fitness_func, **kwargs)
+
+    def print(self):
+        print(self.chromosome, self.fitness)
 
     def cal_fitness(self):
         fitness = 0
@@ -76,7 +84,7 @@ class GeneticAlgorithm:
             index.remove(tmp)
             index_to_mutate.append(tmp)
         for idx in index_to_mutate:
-            individual.chromosome[idx] = Individual.rand_choice_gene()
+            individual.chromosome[idx] = Individual.rand_choice_gene(**self.kwargs)
         individual.cal_fitness()
         return individual
 
@@ -93,7 +101,7 @@ class GeneticAlgorithm:
 
     def print_population(self):
         for individual in self.population:
-            print(individual.chromosome, individual.fitness)
+            individual.print()
         print('\n')
 
     def run(self):
@@ -118,55 +126,15 @@ class GeneticAlgorithm:
             size = (10 * self.POPULATION_SIZE) // 100
             new_generations.extend(self.population[: size])
 
-            # 50% fittest population dikawinkan, child diambil utk generasi berikutnya
+            # 100% fittest population dikawinkan, child diambil utk generasi berikutnya
             size = self.POPULATION_SIZE - size
             for i in range(size):
-                parentA = random.choice(self.population[: self.POPULATION_SIZE // 2])
-                parentB = random.choice(self.population[: self.POPULATION_SIZE // 2])
+                parentA = random.choice(self.population[: self.POPULATION_SIZE])
+                parentB = random.choice(self.population[: self.POPULATION_SIZE])
                 new_generations.append(self.__mate(parentA, parentB))
 
             self.population = new_generations
 
-            self.print_population()
-
-        print(id_generation)
-
-
-def fitness_function_knn(**kwargs) -> float:
-    try:
-        k = int("".join(x for x in kwargs['chromosome']))
-        model = KNeighborsClassifier(n_neighbors=k)
-        model.fit(kwargs['train_x'], kwargs['train_y'])
-        pred_y = model.predict(kwargs['test_x'])
-        return precision_score(kwargs['test_y'], pred_y, average='micro')
-    except Exception as e:
-        # exit(e.args[0])
-        return 0
-
-
-if __name__ == '__main__':
-
-    # Preparing dataset
-
-    headers = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety', 'class']
-    df = pd.read_csv('dataset/car.data', header=None, names=headers)
-    classes = []
-
-    for header in headers:
-        le = LabelEncoder()
-        df[header + '_le'] = le.fit_transform(df[header])
-        if header is 'class':
-            classes = le.classes_
-
-    df = df.drop(headers, axis='columns')
-
-    # Splitting dataset
-
-    train_x, test_x, train_y, test_y = train_test_split(df[[item + '_le' for item in headers[:-1]]],
-                                                        df['class_le'], random_state=3, test_size=0.1)
-
-    # Running with optimization
-
-    ga = GeneticAlgorithm(50, 10, 3, fitness_func=fitness_function_knn, train_x=train_x, train_y=train_y,
-                          test_x=test_x, test_y=test_y)
-    ga.run()
+            print("Gen #{}".format(id_generation))
+            self.best_individual.print()
+            print()
