@@ -7,7 +7,7 @@ if __name__ == '__main__':
     headers = ['stg', 'scg', 'str', 'lpr', 'peg', 'uns']
     df = pd.read_csv('dataset/data_user_modeling.csv', header=None, names=headers)
 
-    kmeans = KMeans(n_clusters=4, random_state=0)
+    kmeans = KMeans(n_clusters=4, random_state=None)
     kmeans.fit(df[headers[:-1]])
 
     # for idx, row in enumerate(df['uns']):

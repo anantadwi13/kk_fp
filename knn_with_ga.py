@@ -22,26 +22,22 @@ def fitness_function_knn(**kwargs) -> float:
 if __name__ == '__main__':
 
     # Preparing dataset
-
     headers = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety', 'class']
     df = pd.read_csv('dataset/car.data', header=None, names=headers)
     classes = []
-
     for header in headers:
         le = LabelEncoder()
         df[header + '_le'] = le.fit_transform(df[header])
         if header is 'class':
             classes = le.classes_
-
     df = df.drop(headers, axis='columns')
 
     # Splitting dataset
-
     train_x, test_x, train_y, test_y = train_test_split(df[[item + '_le' for item in headers[:-1]]],
                                                         df['class_le'], random_state=3, test_size=0.1)
 
     # Running with optimization
-
-    ga = GeneticAlgorithm(population_size=200, max_generation=10, gene_type='digit', genes_size=3, fitness_func=fitness_function_knn,
-                          train_x=train_x, train_y=train_y, test_x=test_x, test_y=test_y)
+    ga = GeneticAlgorithm(population_size=200, max_generation=10, gene_type='digit', genes_size=3,
+                          fitness_func=fitness_function_knn, train_x=train_x, train_y=train_y,
+                          test_x=test_x, test_y=test_y)
     ga.run()

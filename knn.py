@@ -18,8 +18,7 @@ if __name__ == '__main__':
     df = df.drop(headers, axis='columns')
 
     train_x, test_x, train_y, test_y = train_test_split(df[[item+'_le' for item in headers[:-1]]],
-                                                        df['class_le'], random_state=3, test_size=0.1)
-
+                                                        df['class_le'], random_state=None, test_size=0.1)
     # print(train_x, test_x, train_y, test_y)
 
     model = KNeighborsClassifier(n_neighbors=10)
