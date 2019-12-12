@@ -130,9 +130,6 @@ class GeneticAlgorithm:
                     or (not self.fitness_sort and self.best_individual.fitness > self.population[0].fitness):
                 self.best_individual = self.population[0]
 
-            if self.__check_population_is_same():
-                break
-
             new_generations = []
 
             # 10% fittest population diambil utk generasi berikutnya
